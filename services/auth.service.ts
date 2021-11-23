@@ -1,6 +1,7 @@
 import axios from 'axios';
+import jwtDecode from 'jwt-decode';
 
-const API_URL = 'http://localhost:8000/api/';
+const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/`;
 
 const register = (publicAddress: string) => {
     return axios.post(API_URL + 'users', {
@@ -27,7 +28,7 @@ const login = (publicAddress: string, signer: any) => {
 };
 
 const handleSignMessage = ({ nonce, signer }) => {
-    return signer.signMessage(`I am signing my one-time nonce: ${nonce}`);
+    return signer.signMessage(`famon.pet signing: ${nonce}`);
 };
 
 const handleAuthenticate = ({ signature, publicAddress }) => {
@@ -40,7 +41,7 @@ const logout = () => {
 };
 
 const getCurrentUser = () => {
-    return JSON.parse(localStorage.getItem('token'));
+    return jwtDecode(JSON.parse(localStorage.getItem('token')))?.payload ?? null;
 };
 
 const attemptTokenRenewal = () => {};

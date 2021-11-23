@@ -1,15 +1,4 @@
 import Head from 'next/head';
-import Nav from './nav';
-import { useEffect, useState } from 'react';
-import { ChainId, DAppProvider, useSendTransaction, useTransactions } from '@usedapp/core';
-import { useEthers, useContractFunction, useContractCall } from '@usedapp/core';
-import Greeter from '../../artifacts/contracts/Greeter.sol/Greeter.json';
-import { utils, ethers } from 'ethers'
-import { Contract } from '@ethersproject/contracts'
-import { useContractMethod } from '../common/hooks';
-import { Flex, Input, Button } from '@chakra-ui/react';
-import Send from './Send';
-import Layout from './Layout';
 
 // Update with the contract address logged out to the CLI when it was deployed
 export const prismaAddress = '0x2e7324e5ab995e9243d3c91c166470ab19e961da';

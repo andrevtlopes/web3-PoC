@@ -1,7 +1,7 @@
 // Layout.tsx
 import { ReactNode } from 'react';
 import { Flex } from '@chakra-ui/react';
-import Nav from './nav';
+import Navbar from '@/components/Navbar';
 
 type Props = {
     children?: ReactNode;
@@ -13,11 +13,14 @@ export default function Layout({ children }: Props) {
             flexDirection='column'
             alignItems='center'
             justifyContent='center'
-            h='100vh'
             bg='gray.800'
+            mt='14'
+            pb='12'
+            sx={{ minHeight: 'calc(100vh - 3.5rem)' }}
         >
-            <Nav />
+            <Navbar />
             {children}
+            <footer className='absolute bottom-0 flex justify-center w-full h-12 font-bold text-gray-200 align-middle'>Copyright © 2021 Fevian</footer>
         </Flex>
     );
 }

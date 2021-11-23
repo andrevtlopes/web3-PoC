@@ -15,6 +15,14 @@ export const loginFailureAction = (payload: any): BaseAction => ({
     payload: payload,
 });
 
+export const loginCheckAction = (): BaseAction => ({
+  type: actionIds.LOGIN_CHECK,
+});
+
+export const logoutRequestAction = (): BaseAction => ({
+  type: actionIds.LOGOUT_REQUEST,
+});
+
 export const setUserAction = (payload: any): BaseAction => ({
   type: actionIds.USER_SET,
   payload: payload,

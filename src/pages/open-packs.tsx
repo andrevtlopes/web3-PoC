@@ -1,7 +1,13 @@
-
 import { useEffect, useState } from 'react';
-import { Flex, Input, Button, Box } from '@chakra-ui/react';
-import { useTransactions } from '@usedapp/core';
+import {
+    Flex,
+    Box,
+    Button,
+    Skeleton,
+    SkeletonText,
+    Text,
+} from '@chakra-ui/react';
+import { useSendTransaction, useTransactions } from '@usedapp/core';
 import { utils } from 'ethers';
 import { useContractMethod } from '../common/hooks';
 import packService from '../../services/pack.service';
@@ -9,35 +15,82 @@ import packService from '../../services/pack.service';
 export default function BuyPacks() {
     const [disabled, setDisabled] = useState(false);
     const [amount, setAmount] = useState('');
+    const [sold, setSold] = useState(0);
     const [address, setAddress] = useState('');
 
-
-    const { state, send } = useContractMethod('transfer');
+    const { sendTransaction, state } = useSendTransaction();
     const { transactions } = useTransactions();
 
     useEffect(() => {
         if (state.status != 'Mining') {
-            // setDisabled(false);
-            // setAmount('0');
-            // setAddress('');
-            // console.log(transactions);
+            packService
+                .getPrice()
+                .then((res) => setAmount(res.data.price))
+                .catch(() => setDisabled(true));
+
+            packService
+                .getSold()
+                .then((res) => setSold(res.data.count))
+                .catch(() => setDisabled(true));
+        }
+    }, [state]);
+
+    useEffect(() => {
+        if (state.status != 'Mining') {
+            setDisabled(false);
+        } else if (state.status === 'Mining') {
+            packService.postCreateTransaction(state.transaction.hash);
         }
     }, [state]);
 
     const handleClick = () => {
-        // setDisabled(true)
-        packService.postOpenPack();
-    }
+        setDisabled(true);
+        packService
+            .getPrice()
+            .then((res) => setAmount(res.data.price))
+            .catch(() =>
+                window.alert('Not able to retrieve pack price, try again!')
+            );
+        sendTransaction({
+            to: process.env.NEXT_PUBLIC_TOKEN_WALLET,
+            value: utils.parseEther(amount),
+        });
+    };
 
-    return <Flex direction='column' gridGap='2'>
-        <Button
-            disabled={disabled}
-            onClick={handleClick}
-            colorScheme='pink'
+    return (
+        <Flex
+            direction='column'
+            alignItems='center'
+            gridGap='2'
+            bgColor='white'
+            rounded='lg'
+            p='2'
         >
-            Buy Starter Pack
-        </Button>
-        {/* {transactions.map((transaction) => (
+            <Flex h='60' w='80' alignItems='center' justifyContent='center'>
+                <Box
+                    h='28'
+                    w='24'
+                    bgColor='gray.400'
+                    className='animate-bounce'
+                    rounded='full'
+                />
+            </Flex>
+            <SkeletonText>
+                Bla bla bla bla bla bla bla bla bla bla bla bla
+            </SkeletonText>
+            <Text fontSize='sm' bg='gray.300' rounded='full' px='3' py='0.5'>
+                {sold} packs sold
+            </Text>
+            <Text fontSize='md'>{amount} BNB</Text>
+            <Button
+                w='fit-content'
+                disabled={disabled}
+                onClick={handleClick}
+                colorScheme='pink'
+            >
+                Buy Starter Pack
+            </Button>
+            {/* {transactions && transactions.map((transaction) => (
             <Flex
                 bg='gray.600'
                 color='white'
@@ -48,5 +101,6 @@ export default function BuyPacks() {
                 <Box>{transaction.submittedAt}</Box>
             </Flex>
         ))} */}
-    </Flex>
+        </Flex>
+    );
 }

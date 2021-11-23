@@ -1,4 +1,10 @@
-import { Flex, Text, Button } from '@chakra-ui/react';
+import {
+    Flex,
+    Text,
+    Button,
+    SkeletonText,
+    SkeletonCircle,
+} from '@chakra-ui/react';
 import {
     useEthers,
     useEtherBalance,
@@ -6,12 +12,13 @@ import {
     shortenIfAddress,
 } from '@usedapp/core';
 import { formatEther } from '@ethersproject/units';
-// import BNBCoin from '../../assets/bnblogo';
+import BNBCoin from '../assets/bnblogo.svg';
 import Identicon from './Identicon';
-import { prismaAddress } from '.';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginRequestAction } from '@/app/actions';
 import { RootState } from '@/app/reducers';
+import { useEffect, useState } from 'react';
+import { loginCheckAction } from '../app/actions';
 
 type Props = {
     handleOpenModal: any;
@@ -19,18 +26,42 @@ type Props = {
 
 export default function ConnectButton({ handleOpenModal }: Props) {
     const { activateBrowserWallet, account, library } = useEthers();
-    const etherBalance = useEtherBalance(account);
-    const prismaBalance = useTokenBalance(prismaAddress, account);
     const user = useSelector((state: RootState) => state?.user);
+    const [loading, setLoading] = useState(true);
+    const [tryLogin, setTryLogin] = useState(false);
+    const etherBalance = useEtherBalance(user?.publicAddress);
+    const prismaBalance = useTokenBalance(process.env.NEXT_PUBLIC_TOKEN_CONTRACT, user?.publicAddress);
     const dispatch = useDispatch();
+    
 
-    const handleConnectWallet = () => {
-        activateBrowserWallet();
-        const signer = library.getSigner(account);
-        dispatch(loginRequestAction({ publicAddress: account, signer }));
+    const handleConnectWallet = async () => {
+        try {
+            activateBrowserWallet(undefined, true);
+            setTryLogin(true);
+        }
+        catch(error) {
+            console.log(error);
+        }
     };
 
-    return user?.publicAddress ? (
+    useEffect(() => {
+        let timer1 = setTimeout(() => setLoading(false), 1000);
+        dispatch(loginCheckAction());
+
+        return () => {
+            clearTimeout(timer1);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (tryLogin) {
+            const signer = library.getSigner(account);
+            dispatch(loginRequestAction({ publicAddress: account, signer }));
+            setTryLogin(false);
+        }
+    }, [account]);
+
+    return loading || user?.token ? (
         <Flex
             background='gray.600'
             m='2'
@@ -40,15 +71,33 @@ export default function ConnectButton({ handleOpenModal }: Props) {
             gridGap='2'
         >
             <Text color='white' fontSize='md'>
-                PSM:{' '}
-                {prismaBalance &&
-                    parseFloat(formatEther(prismaBalance)).toFixed(0)}
+                PSM:
             </Text>
-            {/* <BNBCoin width='1em' /> */}
-            <Text color='white' fontSize='md'>
-                {etherBalance &&
-                    parseFloat(formatEther(etherBalance)).toFixed(3)}
-            </Text>
+            <SkeletonText
+                noOfLines={1}
+                spacing='5'
+                skeletonHeight='4'
+                isLoaded={!!prismaBalance}
+            >
+                <Text color='white' fontSize='md'>
+                    {(prismaBalance &&
+                        parseFloat(formatEther(prismaBalance)).toFixed(0)) ||
+                        '0000'}
+                </Text>
+            </SkeletonText>
+            <BNBCoin width='1em' />
+            <SkeletonText
+                noOfLines={1}
+                spacing='5'
+                skeletonHeight='4'
+                isLoaded={!!etherBalance}
+            >
+                <Text color='white' fontSize='md'>
+                    {(etherBalance &&
+                        parseFloat(formatEther(etherBalance)).toFixed(3)) ||
+                        '00.000'}
+                </Text>
+            </SkeletonText>
             <Button
                 display='flex'
                 gridGap='1'
@@ -78,10 +127,17 @@ export default function ConnectButton({ handleOpenModal }: Props) {
                 <TagLabel color='white'>{etherBalance &&
                     parseFloat(formatEther(etherBalance)).toFixed(0)} FMT</TagLabel>
             </Tag> */}
-                <Text color='white' fontSize='md'>
-                    {user?.publicAddress &&
-                        shortenIfAddress(user?.publicAddress)}
-                </Text>
+                <SkeletonText
+                    noOfLines={1}
+                    spacing='5'
+                    skeletonHeight='4'
+                    isLoaded={!!account}
+                >
+                    <Text color='white' fontSize='md'>
+                        {(account && shortenIfAddress(account)) ||
+                            '0x0000...0000'}
+                    </Text>
+                </SkeletonText>
                 <Identicon />
             </Button>
         </Flex>

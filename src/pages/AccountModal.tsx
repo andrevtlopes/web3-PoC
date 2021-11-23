@@ -17,7 +17,7 @@ import { ChainId, getExplorerAddressLink, shortenIfAddress, useEthers } from '@u
 import Identicon from './Identicon';
 import authService from '../../services/auth.service';
 import { useDispatch } from 'react-redux';
-import { unsetUserAction } from '@/app/actions';
+import { logoutRequestAction } from '@/app/actions';
 
 type Props = {
     isOpen: any;
@@ -29,7 +29,7 @@ export default function AccountModal({ isOpen, onClose }: Props) {
     const dispatch = useDispatch();
 
     function handleDeactivateAccount() {
-        dispatch(unsetUserAction());
+        dispatch(logoutRequestAction());
         onClose();
     }
 

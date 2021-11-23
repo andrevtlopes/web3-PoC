@@ -26,6 +26,29 @@ function* loginFlow(publicAddress, signer) {
     return token;
 }
 
+function* loginCheckFlow() {
+    let token;
+    try {
+        token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (token) {
+            const { publicAddress, id } = yield call(authService.getCurrentUser);
+            yield put(setUserAction({ token, publicAddress, id }));
+            yield put(loginSuccessAction());
+        }
+        else {
+            yield put(loginFailureAction('User not authenticated'));
+        }
+        // browserHistory.push('/');
+    } catch (error) {
+        yield put(loginFailureAction(error));
+    } finally {
+        if (yield cancelled()) {
+            // browserHistory.push('/');
+        }
+    }
+    return token;
+}
+
 function* logout() {
     yield put(unsetUserAction());
     localStorage.removeItem('token');
@@ -34,11 +57,20 @@ function* logout() {
 
 function* loginWatcher() {
     while (true) {
-        const { publicAddress, signer } = yield take(actionIds.LOGIN_REQUEST);
-        const task = yield fork(loginFlow, publicAddress, signer);
+        const login = yield take([actionIds.LOGIN_CHECK, actionIds.LOGIN_REQUEST]);
+        let task;
+
+        if (login.type === actionIds.LOGIN_CHECK) {
+            task = yield fork(loginCheckFlow);
+        }
+        else {
+            task = yield fork(loginFlow, login.publicAddress, login.signer);
+        }
+
         const action = yield take([
-            actionIds.USER_UNSET,
             actionIds.LOGIN_FAILURE,
+            actionIds.USER_UNSET,
+            actionIds.LOGOUT_REQUEST
         ]);
 
         if (action.type === actionIds.USER_UNSET) {
@@ -46,6 +78,21 @@ function* loginWatcher() {
         }
 
         yield call(logout);
+
+        // const { publicAddress, signer } = yield take(actionIds.LOGIN_REQUEST);
+        // const task = yield fork(loginFlow, publicAddress, signer);
+
+        // const actions = yield take([
+        //     actionIds.LOGIN_FAILURE,
+        //     actionIds.USER_UNSET,
+        //     actionIds.LOGOUT_REQUEST
+        // ]);
+
+        // if (actions.type === actionIds.USER_UNSET) {
+        //     yield cancel(task);
+        // }
+
+        // yield call(logout);
     }
 }
 

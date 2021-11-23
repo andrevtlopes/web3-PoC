@@ -2,15 +2,14 @@ import { useEffect, useRef } from 'react';
 import { useEthers } from '@usedapp/core';
 import styled from '@emotion/styled';
 import Jazzicon from '@metamask/jazzicon';
+import { Box } from '@chakra-ui/layout';
+import { SkeletonCircle } from '@chakra-ui/skeleton';
 
-const StyledIdenticon = styled.div`
-    height: 1rem;
-    width: 1rem;
-    border-radius: 1.125rem;
-    background-color: black;
-`;
+type Props = {
+    props?: any;
+};
 
-export default function Identicon() {
+export default function Identicon({ props }: Props) {
     const ref = useRef<HTMLDivElement>();
     const { account } = useEthers();
 
@@ -23,5 +22,7 @@ export default function Identicon() {
         }
     }, [account]);
 
-    return <StyledIdenticon ref={ref as any} />;
+    return <SkeletonCircle size='4' isLoaded={!!account}>
+        <Box {...props} ref={ref as any} />
+    </SkeletonCircle>;
 }
