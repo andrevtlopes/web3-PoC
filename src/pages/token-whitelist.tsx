@@ -1,40 +1,48 @@
 
 import { useEffect, useState } from 'react';
 import { Flex, Input, Button, Box } from '@chakra-ui/react';
-import { useTransactions } from '@usedapp/core';
 import { utils } from 'ethers';
-import { useContractMethod } from '@/common/hooks';
+import { useWhitelistTokenContractFunction, useWhitelistTokenContractMethod } from '../common/hooks';
+import { useSelector } from 'react-redux';
+import { RootState } from '../app/reducers';
 
-export default function Send() {
+export default function TokenWhitelist() {
     const [disabled, setDisabled] = useState(false);
     const [amount, setAmount] = useState('');
-    const [address, setAddress] = useState('');
+    const [balance, setBalance] = useState('');
+    const user = useSelector((state: RootState) => state?.user);
 
-
-    const { state, send } = useContractMethod('transfer');
-    const { transactions } = useTransactions();
+    const { state, send } = useWhitelistTokenContractFunction('buyTokensWhitelist', user.signer);
+    const getBalance = useWhitelistTokenContractMethod('getBalance');
 
     useEffect(() => {
         if (state.status != 'Mining') {
             setDisabled(false);
             setAmount('0');
-            setAddress('');
-            console.log(transactions);
         }
+        
     }, [state]);
 
+    useEffect(() => {
+        if (getBalance) {
+            setBalance(getBalance[0])
+        }
+    },[getBalance])
+
     const handleClick = () => {
-        setDisabled(true)
-        send(address, utils.parseEther(amount));
+        setDisabled(true);
+        const overrides = {
+            value: utils.parseEther(amount),
+        }
+
+        const v = 0x1c;
+        const r = '0xe5a56d7030c88897c65ec614eb860614ed11cc0950e1537da4c727a9da06beb6';
+        const s = '0x2ac779d988c3dde87b36600a4c7bf5019ece43abd045ed65a801e238b3ea42f2';
+        send(v, r, s, overrides);
     }
 
     return <Flex direction='column' gridGap='2'>
-        <Input
-            disabled={disabled}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder='Address'
-            color='white'
-        />
+        <Box color='white'>Balance: {balance && utils.formatEther(balance) + ' BNB'}</Box>
         <Input
             disabled={disabled}
             onChange={(e) => setAmount(e.target.value)}

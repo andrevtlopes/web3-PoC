@@ -26,6 +26,7 @@ export default function Navbar() {
                         <FamonIcon />
                     </div>
                 </Link>
+                <NavLink href='/token-whitelist'>Whitelist</NavLink>
                 <NavLink
                     href='/open-packs'
                     icon={() => (

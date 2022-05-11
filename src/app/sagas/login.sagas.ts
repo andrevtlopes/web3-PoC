@@ -1,5 +1,6 @@
 import { call, put, take, fork, cancel, cancelled } from 'redux-saga/effects';
 import authService from '../../../services/auth.service';
+import tokenService from '../../../services/token.service';
 import {
     loginFailureAction,
     loginSuccessAction,
@@ -9,13 +10,14 @@ import {
 import { actionIds } from '../common';
 
 function* loginFlow(publicAddress, signer) {
-    let token;
     try {
-        token = yield call(authService.login, publicAddress, signer);
-        yield put(setUserAction({ token, publicAddress }));
-        yield put(loginSuccessAction());
+        const token = yield call(authService.login, publicAddress, signer);
         localStorage.setItem('token', JSON.stringify(token));
+        const { data } = yield call(tokenService.getBalance);
+        yield put(setUserAction({ token, publicAddress, signer, tokenBalance: data }));
+        yield put(loginSuccessAction());
         // browserHistory.push('/');
+        return token;
     } catch (error) {
         yield put(loginFailureAction(error));
     } finally {
@@ -23,16 +25,16 @@ function* loginFlow(publicAddress, signer) {
             // browserHistory.push('/');
         }
     }
-    return token;
 }
 
-function* loginCheckFlow() {
+function* loginCheckFlow(signer: any) {
     let token;
     try {
         token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (token) {
             const { publicAddress, id } = yield call(authService.getCurrentUser);
-            yield put(setUserAction({ token, publicAddress, id }));
+            const { data } = yield call(tokenService.getBalance);
+            yield put(setUserAction({ token, publicAddress, id, signer, tokenBalance: data }));
             yield put(loginSuccessAction());
         }
         else {
@@ -61,7 +63,7 @@ function* loginWatcher() {
         let task;
 
         if (login.type === actionIds.LOGIN_CHECK) {
-            task = yield fork(loginCheckFlow);
+            task = yield fork(loginCheckFlow, login.signer);
         }
         else {
             task = yield fork(loginFlow, login.publicAddress, login.signer);

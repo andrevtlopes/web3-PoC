@@ -4,12 +4,16 @@ export type UserState = {
     id: string;
     publicAddress: string;
     token: string;
+    signer: any;
+    tokenBalance: number;
 };
 
 const initialState: UserState = {
     id: null,
     publicAddress: null,
     token: null,
+    signer: null,
+    tokenBalance: null,
 };
 
 const userReducer = (state = initialState, action: BaseAction) => {
@@ -20,6 +24,8 @@ const userReducer = (state = initialState, action: BaseAction) => {
                 id: action.payload.id,
                 publicAddress: action.payload.publicAddress,
                 token: action.payload.token,
+                signer: action.payload.signer,
+                tokenBalance: action.payload.tokenBalance,
             };
         case actionIds.USER_UNSET:
             return {
@@ -27,7 +33,14 @@ const userReducer = (state = initialState, action: BaseAction) => {
                 id: null,
                 publicAddress: null,
                 token: null,
+                signer: null,
+                tokenBalance: null,
             };
+        case actionIds.TOKEN_UPDATE:
+            return {
+                ...state,
+                // tokenBalance: action.payload.tokenBalance,
+            }
         default:
             return {
                 ...state,

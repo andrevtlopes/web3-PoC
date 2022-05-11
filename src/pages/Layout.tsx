@@ -2,6 +2,7 @@
 import { ReactNode } from 'react';
 import { Flex } from '@chakra-ui/react';
 import Navbar from '@/components/Navbar';
+import Spinner from '@/components/Spinner';
 
 type Props = {
     children?: ReactNode;

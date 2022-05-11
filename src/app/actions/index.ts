@@ -1,9 +1,10 @@
-import { BaseAction, actionIds } from '../common';
+import { BaseAction, actionIds, UserAction, TokenAction } from '../common';
 
-export const loginRequestAction = (payload: any): any => ({
+export const loginRequestAction = (payload: any): UserAction => ({
     type: actionIds.LOGIN_REQUEST,
     publicAddress: payload.publicAddress,
     signer: payload.signer,
+    tokenBalance: payload.payload,
 });
 
 export const loginSuccessAction = (): BaseAction => ({
@@ -12,11 +13,12 @@ export const loginSuccessAction = (): BaseAction => ({
 
 export const loginFailureAction = (payload: any): BaseAction => ({
     type: actionIds.LOGIN_FAILURE,
-    payload: payload,
+    payload
 });
 
-export const loginCheckAction = (): BaseAction => ({
+export const loginCheckAction = (payload: any): BaseAction => ({
   type: actionIds.LOGIN_CHECK,
+  payload
 });
 
 export const logoutRequestAction = (): BaseAction => ({
@@ -25,9 +27,18 @@ export const logoutRequestAction = (): BaseAction => ({
 
 export const setUserAction = (payload: any): BaseAction => ({
   type: actionIds.USER_SET,
-  payload: payload,
+  payload
 });
 
 export const unsetUserAction = (): BaseAction => ({
   type: actionIds.USER_UNSET,
 });
+
+export const fetchBalanceAction = (): BaseAction => ({
+  type: actionIds.TOKEN_FETCH,
+})
+
+export const updateTokenBalanceAction = (payload: any): BaseAction => ({
+  type: actionIds.TOKEN_UPDATE,
+  payload
+})

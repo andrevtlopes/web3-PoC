@@ -123,7 +123,7 @@ export default function AccountModal({ isOpen, onClose }: Props) {
                                 <CopyIcon mr={1} />
                                 Copy Address
                             </Button>
-                            <Link
+                            {/* <Link
                                 fontSize='sm'
                                 display='flex'
                                 alignItems='center'
@@ -138,7 +138,7 @@ export default function AccountModal({ isOpen, onClose }: Props) {
                             >
                                 <ExternalLinkIcon mr={1} />
                                 View on Explorer
-                            </Link>
+                            </Link> */}
                         </Flex>
                     </Box>
                 </ModalBody>

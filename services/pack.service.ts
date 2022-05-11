@@ -11,8 +11,8 @@ const postOpenPack = () => {
     return axios.post(API_URL + 'packs', {}, { headers: authHeader() });
 };
 
-const postCreateTransaction = (transaction: string) => {
-    return axios.post(API_URL + 'packs', { transaction }, { headers: authHeader() });
+const postCreateTransaction = (transaction: string, quantity: number) => {
+    return axios.post(API_URL + 'packs', { transaction, quantity }, { headers: authHeader() });
 };
 
 const getPrice = () => {

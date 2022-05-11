@@ -14,12 +14,17 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-const Prisma = await ethers.getContractFactory("Prisma");
-const prisma = await Prisma.deploy('Prisma', "PSM");
+  const BuyFamon = await ethers.getContractFactory("BuyFamon");
+  const buyFamon = await BuyFamon.deploy(20, ethers.utils.parseEther("1.0"));
+  
+  const BuyToken = await ethers.getContractFactory("BuyToken");
+  const buyToken = await BuyToken.deploy(ethers.utils.parseEther("40.0"), ethers.utils.parseEther("20.0"));
 
-  await prisma.deployed();
+  await buyFamon.deployed();
+  await buyToken.deployed();
 
-  console.log("Prisma deployed to:", prisma.address);
+  console.log("Buy Famon deployed to:", buyFamon.address);
+  console.log("Buy Token deployed to:", buyToken.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

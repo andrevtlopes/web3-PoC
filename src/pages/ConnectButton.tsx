@@ -8,17 +8,16 @@ import {
 import {
     useEthers,
     useEtherBalance,
-    useTokenBalance,
     shortenIfAddress,
 } from '@usedapp/core';
-import { formatEther } from '@ethersproject/units';
+import { utils } from 'ethers';
 import BNBCoin from '../assets/bnblogo.svg';
 import Identicon from './Identicon';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginRequestAction } from '@/app/actions';
 import { RootState } from '@/app/reducers';
 import { useEffect, useState } from 'react';
-import { loginCheckAction } from '../app/actions';
+import { loginCheckAction, fetchBalanceAction } from '../app/actions';
 
 type Props = {
     handleOpenModal: any;
@@ -30,34 +29,44 @@ export default function ConnectButton({ handleOpenModal }: Props) {
     const [loading, setLoading] = useState(true);
     const [tryLogin, setTryLogin] = useState(false);
     const etherBalance = useEtherBalance(user?.publicAddress);
-    const prismaBalance = useTokenBalance(process.env.NEXT_PUBLIC_TOKEN_CONTRACT, user?.publicAddress);
     const dispatch = useDispatch();
-    
 
     const handleConnectWallet = async () => {
         try {
-            activateBrowserWallet(undefined, true);
+            activateBrowserWallet();
             setTryLogin(true);
+            if (account !== null) {
+                login();
+            }
         }
-        catch(error) {
+        catch (error) {
             console.log(error);
         }
     };
 
     useEffect(() => {
-        let timer1 = setTimeout(() => setLoading(false), 1000);
-        dispatch(loginCheckAction());
-
-        return () => {
-            clearTimeout(timer1);
-        };
+        console.log(account)
+        if (library) {
+            const signer = library.getSigner(account);
+            let timer1 = setTimeout(() => setLoading(false), 1000);
+            dispatch(loginCheckAction({ signer }));
+            dispatch(fetchBalanceAction());
+        
+            return () => {
+                clearTimeout(timer1);
+            };
+        }
     }, []);
+
+    const login = () => {
+        const signer = library.getSigner(account);
+        dispatch(loginRequestAction({ publicAddress: account, signer }));
+        setTryLogin(false);
+    }
 
     useEffect(() => {
         if (tryLogin) {
-            const signer = library.getSigner(account);
-            dispatch(loginRequestAction({ publicAddress: account, signer }));
-            setTryLogin(false);
+            login();
         }
     }, [account]);
 
@@ -71,18 +80,18 @@ export default function ConnectButton({ handleOpenModal }: Props) {
             gridGap='2'
         >
             <Text color='white' fontSize='md'>
-                PSM:
+                TTK:
             </Text>
             <SkeletonText
                 noOfLines={1}
                 spacing='5'
                 skeletonHeight='4'
-                isLoaded={!!prismaBalance}
+                isLoaded={!!user?.tokenBalance}
             >
                 <Text color='white' fontSize='md'>
-                    {(prismaBalance &&
-                        parseFloat(formatEther(prismaBalance)).toFixed(0)) ||
-                        '0000'}
+                    {(user?.tokenBalance &&
+                        parseFloat(utils.formatEther(user?.tokenBalance)).toFixed(4)) ||
+                        '00.0000'}
                 </Text>
             </SkeletonText>
             <BNBCoin width='1em' />
@@ -94,7 +103,7 @@ export default function ConnectButton({ handleOpenModal }: Props) {
             >
                 <Text color='white' fontSize='md'>
                     {(etherBalance &&
-                        parseFloat(formatEther(etherBalance)).toFixed(3)) ||
+                        parseFloat(utils.formatEther(etherBalance)).toFixed(3)) ||
                         '00.000'}
                 </Text>
             </SkeletonText>
@@ -131,10 +140,10 @@ export default function ConnectButton({ handleOpenModal }: Props) {
                     noOfLines={1}
                     spacing='5'
                     skeletonHeight='4'
-                    isLoaded={!!account}
+                    isLoaded={!!user?.publicAddress}
                 >
                     <Text color='white' fontSize='md'>
-                        {(account && shortenIfAddress(account)) ||
+                        {(user?.publicAddress && shortenIfAddress(user?.publicAddress)) ||
                             '0x0000...0000'}
                     </Text>
                 </SkeletonText>

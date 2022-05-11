@@ -1,26 +1,15 @@
 import { Interface } from '@ethersproject/abi'
 import { useContractCall, useContractFunction } from '@usedapp/core';
 import { Contract } from '@ethersproject/contracts';
-import { ethers } from 'ethers';
+import { ethers, utils } from 'ethers';
 import Prisma from '../../../artifacts/contracts/Prisma.sol/Prisma.json';
 import BigchainDB from 'bigchaindb-driver';
 import bip39 from 'bip39';
-import { randomInt } from 'crypto';
+import BuyToken from '../../../artifacts/contracts/BuyToken.sol/BuyToken.json';
 
 const prismaAddress = '0x2E7324E5ab995e9243d3C91c166470AB19E961Da';
 const prismaInterface = new ethers.utils.Interface(Prisma.abi);
 const contract = new Contract(prismaAddress, prismaInterface);
-
-export function useGreet() {
-    const [greet]: any =
-        useContractCall({
-            abi: new Interface(Prisma.abi),
-            address: process.env.TOKEN_CONTRACT,
-            method: 'greet',
-            args: [],
-        }) ?? [];
-    return greet;
-}
 
 export function useContractMethod(methodName: string) {
     // const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -29,6 +18,40 @@ export function useContractMethod(methodName: string) {
 
     const { state, send } = useContractFunction(contract, methodName, {});
     return { state, send };
+}
+
+export function useWhitelistTokenContractFunction(
+    functionName: string,
+    signer: any,
+    transactionName?: string
+) {
+    const tokenInterface = new utils.Interface(BuyToken.abi);
+    const contract = new Contract(
+        process.env.NEXT_PUBLIC_BUY_TOKEN_WHITELIST_CONTRACT,
+        tokenInterface,
+        signer
+    );
+
+    return useContractFunction(contract, functionName, { transactionName });
+}
+
+export function useWhitelistTokenContractMethod(methodName: string, args=[]): any | undefined {
+    const tokenInterface = new utils.Interface(BuyToken.abi);
+    const contract = new Contract(
+        process.env.NEXT_PUBLIC_BUY_TOKEN_WHITELIST_CONTRACT,
+        tokenInterface,
+    );
+    const value = useContractCall({
+      abi: tokenInterface,
+      address: process.env.NEXT_PUBLIC_BUY_TOKEN_WHITELIST_CONTRACT,
+      method: methodName,
+      args
+    }) ?? {}
+    // if (error) {
+    //   console.error(error.message)
+    //   return undefined
+    // }
+    return value?.[0]
 }
   
 export function useDBConnection() {
